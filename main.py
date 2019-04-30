@@ -23,7 +23,8 @@ import time
 #Define some global and local variables
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
+flags.DEFINE_string("img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/", "path for train img")
+flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/", "path for train xml file")
 def set_parameter():
     #set some superparameters which can reset befor run
     flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
@@ -31,6 +32,7 @@ def set_parameter():
     flags.DEFINE_float('validation_size', 0.2, 'validation size.')
     flags.DEFINE_integer('img_size', 128, 'image width=image height.')
     flags.DEFINE_integer('iteration_steps', 20000, 'Number of epochs to run trainer.')
+    flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
     flags.DEFINE_integer('batch_size', 64, 'Number of batch size.')
     flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
     flags.DEFINE_string("saved_dir", "trained_model", "save trained model")
@@ -81,19 +83,22 @@ def set_parameter():
     flags.DEFINE_integer('vgg17_num_hidden2', 4096, 'filter depth for conv3.')
 
     #parameters for object detection
-    flags.DEFINE_string("train_img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/", "path for train img")
-    flags.DEFINE_string("train_xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/", "path for train xml file")
     # return FLAGS
 
 def main(_):
     #call set_parameter function to intialize the super parameters 
     set_parameter()
-    #FLAGS = set_parameter()
-    # train_path=FLAGS.train_path
-    print("train_path is :", FLAGS.train_path)
-    print("train_path is :", FLAGS.train_img_path)
-    # print("train_path is :", train_path)
+    print("img_path is :", FLAGS.img_path)
     print("validation percent is :", FLAGS.validation_size)
+
+	#establish the session variable
+    sess = tf.Session()
+	# establish a model object
+	model = Model(sess, PARA)
+	#start training or testing
+	getattr(model,flags.FLAGS.action)()
+
+
     #*prepare the training dataset & load data
     classes = os.listdir(FLAGS.train_path)
     # print(classes)
@@ -132,7 +137,7 @@ def main(_):
     print("Number of files in Validation-set:\t{}" 
         .format(len(input_data.valid.labels)))
 
-    create a dataflow graph
+    #create a dataflow graph
     mygraph = tf.Graph()
     with mygraph.as_default():
         #1) Define some data & labbel placeholder.
