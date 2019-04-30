@@ -38,7 +38,7 @@ python bully_train.py --train_path path-to-training-dataset
 ### predict a single image
 python predict.py --img_file path-to-img/xxx.jpg
 ### test the accuracy for testing dataset 
-python test.py --test_path path-to-testing-dataset`
+python test.py --test_path path-to-testing-dataset
 
 
 

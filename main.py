@@ -1,6 +1,6 @@
 # Qingbo/Haotian Mar 8,2019
 
-import loaddata
+# import loaddata
 from my_model import laimodel, vgg16model, vgg17model
 import sys  
 import os
@@ -13,10 +13,86 @@ from datetime import timedelta
 import math
 import random
 import numpy as np
+import gc
+import xml.etree.ElementTree as etxml
+import skimage.io
+import skimage.transform
+# import ssd300
+import time
 
+#Define some global and local variables
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
+def set_parameter():
+    #set some superparameters which can reset befor run
+    flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
+    # ?% of the data will be used for validation
+    flags.DEFINE_float('validation_size', 0.2, 'validation size.')
+    flags.DEFINE_integer('img_size', 128, 'image width=image height.')
+    flags.DEFINE_integer('iteration_steps', 20000, 'Number of epochs to run trainer.')
+    flags.DEFINE_integer('batch_size', 64, 'Number of batch size.')
+    flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
+    flags.DEFINE_string("saved_dir", "trained_model", "save trained model")
+    flags.DEFINE_string("saved_file", "trained_model/bully_action", "save trained model")
+
+    
+    flags.DEFINE_integer('img_depth', 3, 'Number of channels.')
+    flags.DEFINE_integer('filter_size', 3, 'filter size.')
+    flags.DEFINE_integer('filter_depth1', 32, 'filter depth for conv1.')
+    flags.DEFINE_integer('filter_depth2', 32, 'filter depth for conv2.')
+    flags.DEFINE_integer('filter_depth3', 64, 'filter depth for conv3.')
+    flags.DEFINE_integer('pooling_num', 3, 'Number of pooling')
+    flags.DEFINE_integer('flatten_num', pow(FLAGS.img_size//
+        pow(2,FLAGS.pooling_num),2)*FLAGS.filter_depth3, 
+        'Number of features after flattern')
+    print("flatten_num is", FLAGS.flatten_num)
+    flags.DEFINE_integer('fc_depth', 128, 'fully connected layer depth.')
+
+    flags.DEFINE_integer('vgg_filter_size1', 3, 'filter size.')
+    flags.DEFINE_integer('vgg_filter_size2', 3, 'filter size.')
+    flags.DEFINE_integer('vgg_filter_size3', 3, 'filter size.')
+    flags.DEFINE_integer('vgg_filter_size4', 3, 'filter size.')
+    flags.DEFINE_integer('vgg_filter_depth1', 64, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg_filter_depth2', 128, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg_filter_depth3', 256, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg_filter_depth4', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg_num_hidden1', 4096, 'filter depth for conv3.')
+    flags.DEFINE_integer('vgg_num_hidden2', 4096, 'filter depth for conv3.')
+
+    flags.DEFINE_integer('vgg17_filter_size1', 3, 'filter size.')
+    flags.DEFINE_integer('vgg17_filter_size2', 3, 'filter size.')
+    flags.DEFINE_integer('vgg17_filter_size3', 3, 'filter size.')
+    flags.DEFINE_integer('vgg17_filter_size4', 3, 'filter size.')
+    flags.DEFINE_integer('vgg17_filter_depth1', 64, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth2', 64, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth3', 128, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth4', 128, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth5', 256, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth6', 256, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth7', 256, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth8', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth9', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth10', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth11', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth12', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_filter_depth13', 512, 'filter depth for conv1.')
+    flags.DEFINE_integer('vgg17_num_hidden1', 4096, 'filter depth for conv3.')
+    flags.DEFINE_integer('vgg17_num_hidden2', 4096, 'filter depth for conv3.')
+
+    #parameters for object detection
+    flags.DEFINE_string("train_img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/", "path for train img")
+    flags.DEFINE_string("train_xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/", "path for train xml file")
+    # return FLAGS
 
 def main(_):
+    #call set_parameter function to intialize the super parameters 
+    set_parameter()
+    #FLAGS = set_parameter()
+    # train_path=FLAGS.train_path
     print("train_path is :", FLAGS.train_path)
+    print("train_path is :", FLAGS.train_img_path)
+    # print("train_path is :", train_path)
     print("validation percent is :", FLAGS.validation_size)
     #*prepare the training dataset & load data
     classes = os.listdir(FLAGS.train_path)
@@ -36,16 +112,16 @@ def main(_):
         file_label.flush()
     file_label.close()
 
-    # label_lst=[]
-    # rs = os.path.exists(FLAGS.output_labels)
-    # if rs==True:
-    #     file_handler =open(FLAGS.output_labels,mode='r')
-    #     contents = file_handler.readlines()
-    #     for name in contents:
-    #         name = name.strip('\n')
-    #         label_lst.append(name)
-    #     file_handler.close()
-    # print(label_lst)
+    label_lst=[]
+    rs = os.path.exists(FLAGS.output_labels)
+    if rs==True:
+        file_handler =open(FLAGS.output_labels,mode='r')
+        contents = file_handler.readlines()
+        for name in contents:
+            name = name.strip('\n')
+            label_lst.append(name)
+        file_handler.close()
+    print(label_lst)
  
     input_data = loaddata.read_dataset(FLAGS.train_path, FLAGS.img_size, 
                                       classes, FLAGS.validation_size)
@@ -56,7 +132,7 @@ def main(_):
     print("Number of files in Validation-set:\t{}" 
         .format(len(input_data.valid.labels)))
 
-    #create a dataflow graph
+    create a dataflow graph
     mygraph = tf.Graph()
     with mygraph.as_default():
         #1) Define some data & labbel placeholder.
@@ -178,64 +254,6 @@ def main(_):
                     os.makedirs(FLAGS.saved_dir)
                 saver.save(sess, FLAGS.saved_file) 
 
-
 if __name__ == "__main__":
-    #set some superparameters which can reset befor run
-    flags = tf.app.flags
-    FLAGS = flags.FLAGS
-    flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
-    # ?% of the data will be used for validation
-    flags.DEFINE_float('validation_size', 0.2, 'validation size.')
-    flags.DEFINE_integer('img_size', 128, 'image width=image height.')
-    flags.DEFINE_integer('iteration_steps', 20000, 'Number of epochs to run trainer.')
-    flags.DEFINE_integer('batch_size', 64, 'Number of batch size.')
-    flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
-    flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
-    flags.DEFINE_string("saved_dir", "trained_model", "save trained model")
-    flags.DEFINE_string("saved_file", "trained_model/bully_action", "save trained model")
-
-    
-    flags.DEFINE_integer('img_depth', 3, 'Number of channels.')
-    flags.DEFINE_integer('filter_size', 3, 'filter size.')
-    flags.DEFINE_integer('filter_depth1', 32, 'filter depth for conv1.')
-    flags.DEFINE_integer('filter_depth2', 32, 'filter depth for conv2.')
-    flags.DEFINE_integer('filter_depth3', 64, 'filter depth for conv3.')
-    flags.DEFINE_integer('pooling_num', 3, 'Number of pooling')
-    flags.DEFINE_integer('flatten_num', pow(FLAGS.img_size//
-        pow(2,FLAGS.pooling_num),2)*FLAGS.filter_depth3, 
-        'Number of features after flattern')
-    print("flatten_num is", FLAGS.flatten_num)
-    flags.DEFINE_integer('fc_depth', 128, 'fully connected layer depth.')
-
-    flags.DEFINE_integer('vgg_filter_size1', 3, 'filter size.')
-    flags.DEFINE_integer('vgg_filter_size2', 3, 'filter size.')
-    flags.DEFINE_integer('vgg_filter_size3', 3, 'filter size.')
-    flags.DEFINE_integer('vgg_filter_size4', 3, 'filter size.')
-    flags.DEFINE_integer('vgg_filter_depth1', 64, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg_filter_depth2', 128, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg_filter_depth3', 256, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg_filter_depth4', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg_num_hidden1', 4096, 'filter depth for conv3.')
-    flags.DEFINE_integer('vgg_num_hidden2', 4096, 'filter depth for conv3.')
-
-    flags.DEFINE_integer('vgg17_filter_size1', 3, 'filter size.')
-    flags.DEFINE_integer('vgg17_filter_size2', 3, 'filter size.')
-    flags.DEFINE_integer('vgg17_filter_size3', 3, 'filter size.')
-    flags.DEFINE_integer('vgg17_filter_size4', 3, 'filter size.')
-    flags.DEFINE_integer('vgg17_filter_depth1', 64, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth2', 64, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth3', 128, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth4', 128, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth5', 256, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth6', 256, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth7', 256, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth8', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth9', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth10', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth11', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth12', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_filter_depth13', 512, 'filter depth for conv1.')
-    flags.DEFINE_integer('vgg17_num_hidden1', 4096, 'filter depth for conv3.')
-    flags.DEFINE_integer('vgg17_num_hidden2', 4096, 'filter depth for conv3.')
-
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
     tf.app.run()

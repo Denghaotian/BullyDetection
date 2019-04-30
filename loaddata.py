@@ -61,7 +61,9 @@ class DataSet(object):
 
     return self._images[start:end], self._labels[start:end], self._img_names[start:end], self._cls[start:end]
 
-
+'''
+Used for classification
+'''
 def read_dataset(train_path, image_size, classes, validation_size):
   class DataSets(object):
     pass
@@ -89,6 +91,9 @@ def read_dataset(train_path, image_size, classes, validation_size):
   return data_sets
 
 
+'''
+Used for classification
+'''
 def load_dataset(train_path, image_size, classes):
     images = []
     labels = []
@@ -126,3 +131,71 @@ def load_dataset(train_path, image_size, classes):
     cls = np.array(cls)
 
     return images, labels, img_names, cls, categories
+  
+'''
+Used for object detection
+'''
+def get_data(FLAGS.batch_size):
+    # def get_ground_truth(xml_path):
+    def get_actual_data_from_xml(xml_path):
+        actual_item = []
+        try:
+            annotation_node = etxml.parse(xml_path).getroot()
+            img_width =  float(annotation_node.find('size').find('width').text.strip())
+            img_height = float(annotation_node.find('size').find('height').text.strip())
+            object_node_list = annotation_node.findall('object')       
+            for obj_node in object_node_list:                       
+                lable = lable_arr.index(obj_node.find('name').text.strip())
+                bndbox = obj_node.find('bndbox')
+                x_min = float(bndbox.find('xmin').text.strip())
+                y_min = float(bndbox.find('ymin').text.strip())
+                x_max = float(bndbox.find('xmax').text.strip())
+                y_max = float(bndbox.find('ymax').text.strip())
+                # 位置数据用比例来表示，格式[center_x,center_y,width,height,lable]
+                actual_item.append([((x_min + x_max)/2/img_width), ((y_min + y_max)/2/img_height), ((x_max - x_min) / img_width), ((y_max - y_min) / img_height), lable])
+            return actual_item  
+        except:
+            return None
+        
+    train_data = []
+    actual_data = []
+    #actual_data = []
+    
+    # print(file_name_list)
+    file_name_list = [os.path.basename(x) for x in 
+      glob.glob('/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/*.jpg')]
+    file_list = random.sample(file_name_list, batch_size)
+    f = open("./debug.txt", 'w+') 
+    for f_name in file_list :
+        print(f_name)
+        #img_path = './train_datasets/voc2007/JPEGImages/' + f_name
+        # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/JPEGImages/' + f_name
+        # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/JPEGImages/' + f_name
+        # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/JPEGImages/' + f_name
+        img_path = train_img_path + f_name
+        # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/' + f_name
+        #xml_path = './train_datasets/voc2007/Annotations/' + f_name.replace('.jpg','.xml')
+        # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/Annotations/' + f_name.replace('.jpg','.xml')
+        xml_path = train_xml_path + f_name
+        # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/' + f_name.replace('.jpg','.xml')
+        # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/Annotations/' + f_name.replace('.jpg','.xml')
+        # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/Annotations/' + f_name.replace('.jpg','.xml')
+        if os.path.splitext(img_path)[1].lower() == '.jpg' :
+            actual_item = get_actual_data_from_xml(xml_path)
+            if actual_item != None :
+                actual_data.append(actual_item)
+            else :
+                print('Error : '+xml_path)
+                continue
+            img = skimage.io.imread(img_path)
+            print("img path is")
+            print(img_path)
+            img = skimage.transform.resize(img, (300, 300))
+            # print("img value is")
+            # print(img)
+            # print(img,file=f)
+            # 图像白化预处理
+            img = img - whitened_RGB_mean
+            train_data.append(img)
+            
+    return train_data, actual_data,file_list
