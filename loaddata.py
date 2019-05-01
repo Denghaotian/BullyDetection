@@ -179,21 +179,10 @@ def get_data(batch_size,img_path,xml_path):
     file_list = random.sample(file_name_list, batch_size)
     f = open("./debug.txt", 'w+') 
     for f_name in file_list :
-        print(f_name)
-        #img_path = './train_datasets/voc2007/JPEGImages/' + f_name
-        # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/JPEGImages/' + f_name
-        # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/JPEGImages/' + f_name
-        # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/JPEGImages/' + f_name
+        # print(f_name)
         img_file= img_path + f_name
         # print(img_file)
-        # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/' + f_name
-        #xml_path = './train_datasets/voc2007/Annotations/' + f_name.replace('.jpg','.xml')
-        # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/Annotations/' + f_name.replace('.jpg','.xml')
         xml_file= xml_path + f_name.replace('.jpg','.xml')
-        # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/' + f_name.replace('.jpg','.xml')
-        # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/Annotations/' + f_name.replace('.jpg','.xml')
-        # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/Annotations/' + f_name.replace('.jpg','.xml')
-        # if os.path.splitext(img_path)[1].lower() == '.jpg' :
         # print(os.path.splitext(img_file)[1].lower())
         if os.path.splitext(img_file)[1].lower() == '.jpg' :
             actual_item = get_actual_data_from_xml(xml_file)
