@@ -15,10 +15,11 @@ import time
 #Define some global and local variables
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string('action', 'training', 'training/testing/predict')
+flags.DEFINE_string('action', 'training', 'training/testing/prediction')
 flags.DEFINE_string("img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/JPEGImages/", "path for train img")
 flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/Annotations/", "path for train xml file")
 flags.DEFINE_integer('iteration_steps', 20000, 'Number of steps to run trainer.')
+flags.DEFINE_integer('batch_size',8 , 'Number of batch size.')
 def set_parameter():
     #set some superparameters which can reset befor run
     flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
@@ -26,7 +27,6 @@ def set_parameter():
     flags.DEFINE_float('validation_size', 0.2, 'validation size.')
     flags.DEFINE_integer('image_size', 128, 'image width=image height.')
     flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
-    flags.DEFINE_integer('batch_size',1 , 'Number of batch size.')
     flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
     flags.DEFINE_string("saved_dir", "trained_model", "save trained model")
     flags.DEFINE_string("saved_file", "trained_model/bully_action", "save trained model")
@@ -82,7 +82,7 @@ def main(_):
     #call set_parameter function to intialize the super parameters 
     set_parameter()
     print("img_path is :", FLAGS.img_path)
-    print("validation percent is :", FLAGS.validation_size)
+    # print("validation percent is :", FLAGS.validation_size)
 
     #establish the session variable
     sess = tf.Session()

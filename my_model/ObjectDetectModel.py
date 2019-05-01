@@ -86,7 +86,6 @@ class Model(object):
     def prediction(self):
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-            # ssd_model = ssd300.SSD300(sess,False)
             my_net= OdNet(sess)
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver(var_list=tf.trainable_variables())
