@@ -106,7 +106,28 @@ class OdNet:
         self.feature_class = self.tmp_all_feature[:,:,:self.classes_size]
         self.feature_location = self.tmp_all_feature[:,:,self.classes_size:]
 
+        print('##   feature_class shape : ' + str(self.feature_class.get_shape().as_list()))
+        print('##   feature_location shape : ' + str(self.feature_location.get_shape().as_list()))
+        # default boxs
+        self.all_default_boxs = self.generate_all_default_boxs()
+        self.all_default_boxs_len = len(self.all_default_boxs)
+        print('##   all default boxs : ' + str(self.all_default_boxs_len))
 
+        # ground truth value
+        self.groundtruth_class = tf.placeholder(shape=[None,self.all_default_boxs_len], dtype=tf.int32,name='groundtruth_class')
+        self.groundtruth_location = tf.placeholder(shape=[None,self.all_default_boxs_len,4], dtype=tf.float32,name='groundtruth_location')
+        self.groundtruth_positives = tf.placeholder(shape=[None,self.all_default_boxs_len], dtype=tf.float32,name='groundtruth_positives')
+        self.groundtruth_negatives = tf.placeholder(shape=[None,self.all_default_boxs_len], dtype=tf.float32,name='groundtruth_negatives')
+
+        # Loss function
+        self.groundtruth_count = tf.add(self.groundtruth_positives , self.groundtruth_negatives)
+        self.softmax_cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.feature_class, labels=self.groundtruth_class)
+        self.loss_location = tf.div(tf.reduce_sum(tf.multiply(tf.reduce_sum(self.smooth_L1(tf.subtract(self.groundtruth_location , self.feature_location)), reduction_indices=2) , self.groundtruth_positives), reduction_indices=1) , tf.reduce_sum(self.groundtruth_positives, reduction_indices = 1))
+        self.loss_class = tf.div(tf.reduce_sum(tf.multiply(self.softmax_cross_entropy , self.groundtruth_count), reduction_indices=1) , tf.reduce_sum(self.groundtruth_count, reduction_indices = 1))
+        self.loss_all = tf.reduce_sum(tf.add(self.loss_class , self.loss_location))
+ 
+        self.optimizer = tf.train.AdamOptimizer(0.001)
+        self.train = self.optimizer.minimize(self.loss_all)
 
     def convolution(self, input, shape, strides, name):
         with tf.variable_scope(name):
