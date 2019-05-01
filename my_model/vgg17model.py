@@ -18,7 +18,7 @@ def vgg17_coefficients(vgg_filter_size1=3 , vgg_filter_size2=3 , vgg_filter_size
                        vgg_filter_depth8=512 , vgg_filter_depth9=512 , vgg_filter_depth10=512 , 
                        vgg_filter_depth11=512 , vgg_filter_depth12=512, vgg_filter_depth13=512 , 
                        vgg_num_hidden1=4096 , vgg_num_hidden2=4096 ,
-                       img_size=128, img_depth=3 , class_number=10):
+                       image_size=128, img_depth=3 , class_number=10):
     
     w1 = tf.Variable(tf.truncated_normal([vgg_filter_size1, vgg_filter_size1, img_depth, vgg_filter_depth1],  stddev=0.05))
     # b1 = tf.Variable(tf.zeros([vgg_filter_depth1]))
@@ -53,7 +53,7 @@ def vgg17_coefficients(vgg_filter_size1=3 , vgg_filter_size2=3 , vgg_filter_size
     b13 = tf.Variable(tf.constant(0.05, shape = [vgg_filter_depth13]))
     
     polling_layer_num = 5
-    flatten_num = (img_size // (2**polling_layer_num))*(img_size // (2**polling_layer_num))*vgg_filter_depth13 
+    flatten_num = (image_size // (2**polling_layer_num))*(image_size // (2**polling_layer_num))*vgg_filter_depth13 
     print("flatten numb is ", flatten_num)
 
     w14 = tf.Variable(tf.truncated_normal([flatten_num, vgg_num_hidden1],  stddev=0.05))

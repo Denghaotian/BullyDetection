@@ -161,7 +161,7 @@ def get_data(batch_size,img_path,xml_path):
                 y_min = float(bndbox.find('ymin').text.strip())
                 x_max = float(bndbox.find('xmax').text.strip())
                 y_max = float(bndbox.find('ymax').text.strip())
-                # 位置数据用比例来表示，格式[center_x,center_y,width,height,lable]
+                # location[center_x,center_y,width,height,lable]
                 actual_item.append([((x_min + x_max)/2/img_width), ((y_min + y_max)/2/img_height), ((x_max - x_min) / img_width), ((y_max - y_min) / img_height), lable])
             return actual_item  
         except:
@@ -170,11 +170,11 @@ def get_data(batch_size,img_path,xml_path):
     train_data = []
     actual_data = []
     lable_arr = ['bully','victim']
-    # 图像白化，格式:[R,G,B]
+    # whitening 
     whitened_RGB_mean = [123.68, 116.78, 103.94]
     
     # print(file_name_list)
-    file_name_list = [os.path.basename(x) for x in glob.glob('/Users/tarus/OnlyInMac/bully_data/bully_merge_train/JPEGImages/*.jpg')]
+    file_name_list = [os.path.basename(x) for x in glob.glob(img_path+'*.jpg')]
     # print(file_name_list)
     file_list = random.sample(file_name_list, batch_size)
     f = open("./debug.txt", 'w+') 
@@ -210,7 +210,7 @@ def get_data(batch_size,img_path,xml_path):
             # print("img value is")
             # print(img)
             # print(img,file=f)
-            # 图像白化预处理
+            # whitening process
             img = img - whitened_RGB_mean
             train_data.append(img)
             

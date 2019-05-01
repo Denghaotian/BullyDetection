@@ -14,7 +14,7 @@ def flatten_the_layer(layer):
 def vgg16_coefficients(vgg_filter_size1=3 , vgg_filter_size2=3 , vgg_filter_size3=3 , vgg_filter_size4=3 , 
                        vgg_filter_depth1=64 , vgg_filter_depth2=128 , vgg_filter_depth3=256 , vgg_filter_depth4=512 ,
                        vgg_num_hidden1=4096 , vgg_num_hidden2=1000 ,
-                       img_size=128, img_depth=3 , class_number=10):
+                       image_size=128, img_depth=3 , class_number=10):
     
     w1 = tf.Variable(tf.truncated_normal([vgg_filter_size1, vgg_filter_size1, img_depth, vgg_filter_depth1], stddev=0.1))
     b1 = tf.Variable(tf.zeros([vgg_filter_depth1]))
@@ -49,7 +49,7 @@ def vgg16_coefficients(vgg_filter_size1=3 , vgg_filter_size2=3 , vgg_filter_size
     
     polling_layer_num = 5
 
-    w14 = tf.Variable(tf.truncated_normal([(img_size // (2**polling_layer_num))*(img_size // (2**polling_layer_num))*vgg_filter_depth4 , vgg_num_hidden1], stddev=0.1))
+    w14 = tf.Variable(tf.truncated_normal([(image_size // (2**polling_layer_num))*(image_size // (2**polling_layer_num))*vgg_filter_depth4 , vgg_num_hidden1], stddev=0.1))
     b14 = tf.Variable(tf.constant(1.0, shape = [vgg_num_hidden1]))
     
     w15 = tf.Variable(tf.truncated_normal([vgg_num_hidden1, vgg_num_hidden2], stddev=0.1))

@@ -25,8 +25,6 @@ class Model(object):
     Training method
     '''
     def training(self):
-        # batch_size = 1
-        # batch_size = 15
         running_count = 0
         
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
@@ -43,7 +41,7 @@ class Model(object):
             min_loss_location = 100000.
             min_loss_class = 100000.
 
-            while((min_loss_location + min_loss_class) > 0.001 and running_count < 1000):
+            while((min_loss_location + min_loss_class) > 0.001 and running_count < self.parameters.iteration_steps):
                 running_count += 1
                 
                 train_data, actual_data,_ = get_data(self.parameters.batch_size,self.parameters.img_path,self.parameters.xml_path)
@@ -56,13 +54,16 @@ class Model(object):
                     if min_loss_class > c:
                         min_loss_class = c
 
-                    # msg = ("Step {0} --- Loss:{1:>6.2%}|{2:>6.2%}" 
-                    #     "||Location::{3:>6.2%}  ||Class::{4:.3f}"
-                    #     "||pred_class::{3:>6.2%}|  ||pred_location::{4:.3f}")
-                    # print(msg.format(epoch + 1, i, train_acc, val_acc, val_loss)) 
+                    sum_loss= min_loss_location + min_loss_class
+                    msg = ("Step {0}---Loss:[{1:>4.3}|{2:>4.3}]" 
+                        " ** Location::{3:>4.3} ** Class::{4:>4.3}"
+                        " ** pred_class::[{5:>4.3}|{6:>4.3}|{7:>4.3}]"
+                        " ** pred_location::[{8:>4.3f}|{9:>4.3f}|{10:>4.3f}|")
+                    print(msg.format(running_count, sum_loss, loss_all, np.sum(loss_location), 
+                        np.sum(loss_class),np.sum(pred_class),np.amax(pred_class),
+                        np.min(pred_class),np.sum(pred_location),np.amax(pred_location),
+                        np.min(pred_location)))
 
-                    print('Step:【' + str(running_count) + '】|Loss: 【'+str(min_loss_location + min_loss_class)+'|'+ str(loss_all) + '】 |Location:【'+ str(np.sum(loss_location)) + '】 |Class:【'+ str(np.sum(loss_class)) + '】 |pred_class:【'+ str(np.sum(pred_class))+'|'+str(np.amax(pred_class))+'|'+ str(np.min(pred_class)) + '】 |pred_location:【'+ str(np.sum(pred_location))+'|'+str(np.amax(pred_location))+'|'+ str(np.min(pred_location)) + '】')
-                    
                     # save ckpt 
                     if running_count % 100 == 0:
                         saver.save(sess, './trained_model/bullymodel.ckpt')

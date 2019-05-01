@@ -1,22 +1,15 @@
 # Qingbo/Haotian Mar 8,2019
 
-# import loaddata
+import loaddata
 from my_model.ObjectDetectModel import Model
 from my_model import laimodel, vgg16model, vgg17model
 import sys  
 import os
 import tensorflow as tf
-# from tensorflow.python.platform import flags  
-# from tensorflow.python.platform import gfile
 
-import time
 from datetime import timedelta
 import math
-import random
-import numpy as np
 import gc
-import xml.etree.ElementTree as etxml
-# import ssd300
 import time
 
 #Define some global and local variables
@@ -25,13 +18,13 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('action', 'training', 'training/testing/predict')
 flags.DEFINE_string("img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/JPEGImages/", "path for train img")
 flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/Annotations/", "path for train xml file")
+flags.DEFINE_integer('iteration_steps', 20000, 'Number of steps to run trainer.')
 def set_parameter():
     #set some superparameters which can reset befor run
     flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
     # ?% of the data will be used for validation
     flags.DEFINE_float('validation_size', 0.2, 'validation size.')
     flags.DEFINE_integer('image_size', 128, 'image width=image height.')
-    flags.DEFINE_integer('iteration_steps', 20000, 'Number of epochs to run trainer.')
     flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
     flags.DEFINE_integer('batch_size',1 , 'Number of batch size.')
     flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
@@ -98,7 +91,7 @@ def main(_):
     #start training or testing
     getattr(model,FLAGS.action)()
 
-
+def classify_cnn():
     #*prepare the training dataset & load data
     classes = os.listdir(FLAGS.train_path)
     # print(classes)
