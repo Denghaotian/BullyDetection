@@ -4,8 +4,9 @@ import tensorflow as tf
 from tensorflow.python.training.moving_averages import assign_moving_average
 
 class OdNet:
-    def __init__(self, tf_sess):
+    def __init__(self, tf_sess, parameters):
         self.sess = tf_sess
+        self.parameters = parameters
         # image size
         self.img_size = [300, 300]
         # conv parameters 
@@ -149,7 +150,8 @@ class OdNet:
         self.loss_class = tf.div(tf.reduce_sum(tf.multiply(self.softmax_cross_entropy , self.groundtruth_count), reduction_indices=1) , tf.reduce_sum(self.groundtruth_count, reduction_indices = 1))
         self.loss_all = tf.reduce_sum(tf.add(self.loss_class , self.loss_location))
  
-        self.optimizer = tf.train.AdamOptimizer(0.001)
+        print(self.parameters.learning_rate)
+        self.optimizer = tf.train.AdamOptimizer(self.parameters.learning_rate)
         self.train = self.optimizer.minimize(self.loss_all)
 
     def convolution(self, input, shape, strides, name):

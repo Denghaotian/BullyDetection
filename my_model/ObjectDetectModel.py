@@ -29,7 +29,7 @@ class Model(object):
         
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-            my_net= OdNet(sess)
+            my_net= OdNet(sess,self.parameters)
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver(var_list=tf.trainable_variables())
             if os.path.exists('./session_params/session.ckpt.index') :
@@ -86,7 +86,7 @@ class Model(object):
     def prediction(self):
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-            my_net= OdNet(sess)
+            my_net= OdNet(sess,self.parameters)
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver(var_list=tf.trainable_variables())
             if os.path.exists('./trained_model/bullymodel.ckpt.index') :
