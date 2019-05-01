@@ -31,8 +31,7 @@ class Model(object):
         
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
         with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-            # ssd_model = ssd300.SSD300(sess,True)
-            my_net= OdNet(sess,True)
+            my_net= OdNet(sess)
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver(var_list=tf.trainable_variables())
             if os.path.exists('./session_params/session.ckpt.index') :
@@ -49,8 +48,7 @@ class Model(object):
                 
                 train_data, actual_data,_ = get_data(self.parameters.batch_size,self.parameters.img_path,self.parameters.xml_path)
                 if len(train_data) > 0:
-                    # loss_all,loss_class,loss_location,pred_class,pred_location = self.train_run(train_data, actual_data)
-                    loss_all,loss_class,loss_location,pred_class,pred_location = my_net.run(train_data, actual_data)
+                    loss_all,loss_class,loss_location,pred_class,pred_location = my_net.train_run(train_data, actual_data)
                     l = np.sum(loss_location)
                     c = np.sum(loss_class)
                     if min_loss_location > l:
