@@ -169,11 +169,11 @@ def get_data(batch_size,img_path,xml_path):
         
     train_data = []
     actual_data = []
-    lable_arr = ['bully','victim']
+    # lable_arr = ['bully','victim']
+    lable_arr = ['background','bully','victim']
     # whitening 
     whitened_RGB_mean = [123.68, 116.78, 103.94]
     
-    # print(file_name_list)
     file_name_list = [os.path.basename(x) for x in glob.glob(img_path+'*.jpg')]
     # print(file_name_list)
     file_list = random.sample(file_name_list, batch_size)

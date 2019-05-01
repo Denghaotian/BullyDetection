@@ -21,7 +21,8 @@ class OdNet:
         self.conv_bn_epsilon = 0.00001
 
         # number of classes
-        self.classes_size = 2
+        # self.classes_size = 2
+        self.classes_size = 3
         # background value
         self.background_classes_val = 0
 
@@ -219,6 +220,53 @@ class OdNet:
                 })
                 loss_all = self.check_numerics(loss_all,'loss_all') 
                 return loss_all, loss_class, loss_location, f_class, f_location
+    
+    #For prediction
+    def prediction_run(self, input_images, actual_data):
+        feature_class_softmax = tf.nn.softmax(logits=self.feature_class, dim=-1)
+        background_filter = np.ones(self.classes_size, dtype=np.float32)
+        background_filter[self.background_classes_val] = 0 
+        background_filter = tf.constant(background_filter)  
+        feature_class_softmax=tf.multiply(feature_class_softmax, background_filter)
+        feature_class_softmax = tf.reduce_max(feature_class_softmax,2)
+        box_top_set = tf.nn.top_k(feature_class_softmax, int(self.all_default_boxs_len/20))
+        box_top_index = box_top_set.indices
+        box_top_value = box_top_set.values
+        f_class, f_location, f_class_softmax, box_top_index, box_top_value = self.sess.run(
+            [self.feature_class, self.feature_location, feature_class_softmax, box_top_index, box_top_value], 
+            feed_dict={self.input : input_images }
+        )
+        top_shape = np.shape(box_top_index)
+        pred_class = []
+        pred_class_val = []
+        pred_location = []
+        for i in range(top_shape[0]) :
+            item_img_class = []
+            item_img_class_val = []
+            item_img_location = []
+            for j in range(top_shape[1]) : 
+                p_class_val = f_class_softmax[i][box_top_index[i][j]]
+                if p_class_val < 0.5:
+                    continue
+                p_class = np.argmax(f_class[i][box_top_index[i][j]])
+                if p_class==self.background_classes_val:
+                    continue
+                p_location = f_location[i][box_top_index[i][j]]
+                if p_location[0]<0 or p_location[1]<0 or p_location[2]<0 or p_location[3]<0 or p_location[2]==0 or p_location[3]==0 :
+                    continue
+                is_box_filter = False
+                for f_index in range(len(item_img_class)) :
+                    if self.jaccard(p_location,item_img_location[f_index]) > 0.3 and p_class == item_img_class[f_index] :
+                        is_box_filter = True
+                        break
+                if is_box_filter == False :
+                    item_img_class.append(p_class)
+                    item_img_class_val.append(p_class_val)
+                    item_img_location.append(p_location)        
+            pred_class.append(item_img_class)
+            pred_class_val.append(item_img_class_val)
+            pred_location.append(item_img_location)
+        return pred_class, pred_class_val, pred_location
 
     # Build the function for compute the bouding box
     def smooth_L1(self, x):

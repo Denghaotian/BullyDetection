@@ -78,3 +78,35 @@ class Model(object):
             gc.collect()
                 
         print('===========Training ended==========')
+
+
+    '''
+    prediction for bully object detection
+    '''
+    def prediction(self):
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
+        with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+            # ssd_model = ssd300.SSD300(sess,False)
+            my_net= OdNet(sess)
+            sess.run(tf.global_variables_initializer())
+            saver = tf.train.Saver(var_list=tf.trainable_variables())
+            if os.path.exists('./trained_model/bullymodel.ckpt.index') :
+                saver.restore(sess, './trained_model/bullymodel.ckpt')
+                #load data
+                image, actual,file_list= get_data(1,self.parameters.img_path,self.parameters.xml_path)
+                #run
+                pred_class, pred_class_val, pred_location =  my_net.prediction_run(image,None)
+                print('images for prediction:' + str(file_list))
+                
+                for index, act in zip(range(len(image)), actual):
+                    for a in act :
+                        print('【img-'+str(index)+' actual】:' + str(a))
+                    msg = ("predicted class is: {0}\n "
+                          "predicted class value:{1}\n"
+                          "predicted location:{2}")
+                    print(msg.format(pred_class[index], pred_class_val[index], 
+                          pred_location[index]))
+                    # print('predicted location:' + str(pred_location[index]))   
+            else:
+                print('No trained model Exists!')
+            sess.close()

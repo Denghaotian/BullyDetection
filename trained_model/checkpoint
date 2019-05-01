@@ -1,2 +1,2 @@
-model_checkpoint_path: "bully_action"
-all_model_checkpoint_paths: "bully_action"
+model_checkpoint_path: "session.ckpt"
+all_model_checkpoint_paths: "session.ckpt"
