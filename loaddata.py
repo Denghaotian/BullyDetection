@@ -1,8 +1,12 @@
 import os
-import cv2
-import glob
+# import cv2
+import xml.etree.ElementTree as etxml
+import random
 from sklearn.utils import shuffle
 import numpy as np
+import skimage.io
+import skimage.transform
+import glob
 
 class DataSet(object):
 
@@ -135,19 +139,25 @@ def load_dataset(train_path, image_size, classes):
 '''
 Used for object detection
 '''
-def get_data(FLAGS.batch_size):
+def get_data(batch_size,img_path,xml_path):
     # def get_ground_truth(xml_path):
-    def get_actual_data_from_xml(xml_path):
+    def get_actual_data_from_xml(xml_file):
         actual_item = []
         try:
-            annotation_node = etxml.parse(xml_path).getroot()
+            annotation_node = etxml.parse(xml_file).getroot()
+            # print("now enter try")
+            # print(annotation_node)
             img_width =  float(annotation_node.find('size').find('width').text.strip())
+            # print(img_width)
             img_height = float(annotation_node.find('size').find('height').text.strip())
             object_node_list = annotation_node.findall('object')       
+            # print(object_node_list)
             for obj_node in object_node_list:                       
+                # print(obj_node)
                 lable = lable_arr.index(obj_node.find('name').text.strip())
                 bndbox = obj_node.find('bndbox')
                 x_min = float(bndbox.find('xmin').text.strip())
+                # print(x_min)
                 y_min = float(bndbox.find('ymin').text.strip())
                 x_max = float(bndbox.find('xmax').text.strip())
                 y_max = float(bndbox.find('ymax').text.strip())
@@ -159,11 +169,13 @@ def get_data(FLAGS.batch_size):
         
     train_data = []
     actual_data = []
-    #actual_data = []
+    lable_arr = ['bully','victim']
+    # 图像白化，格式:[R,G,B]
+    whitened_RGB_mean = [123.68, 116.78, 103.94]
     
     # print(file_name_list)
-    file_name_list = [os.path.basename(x) for x in 
-      glob.glob('/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/*.jpg')]
+    file_name_list = [os.path.basename(x) for x in glob.glob('/Users/tarus/OnlyInMac/bully_data/bully_merge_train/JPEGImages/*.jpg')]
+    # print(file_name_list)
     file_list = random.sample(file_name_list, batch_size)
     f = open("./debug.txt", 'w+') 
     for f_name in file_list :
@@ -172,24 +184,28 @@ def get_data(FLAGS.batch_size):
         # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/JPEGImages/' + f_name
         # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/JPEGImages/' + f_name
         # img_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/JPEGImages/' + f_name
-        img_path = train_img_path + f_name
+        img_file= img_path + f_name
+        # print(img_file)
         # img_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/' + f_name
         #xml_path = './train_datasets/voc2007/Annotations/' + f_name.replace('.jpg','.xml')
         # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_test/Annotations/' + f_name.replace('.jpg','.xml')
-        xml_path = train_xml_path + f_name
+        xml_file= xml_path + f_name.replace('.jpg','.xml')
         # xml_path = '/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/' + f_name.replace('.jpg','.xml')
         # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2007/Annotations/' + f_name.replace('.jpg','.xml')
         # xml_path = '/Users/tarus/OnlyInMac/dilated_cnn/VOC2012/Annotations/' + f_name.replace('.jpg','.xml')
-        if os.path.splitext(img_path)[1].lower() == '.jpg' :
-            actual_item = get_actual_data_from_xml(xml_path)
+        # if os.path.splitext(img_path)[1].lower() == '.jpg' :
+        # print(os.path.splitext(img_file)[1].lower())
+        if os.path.splitext(img_file)[1].lower() == '.jpg' :
+            actual_item = get_actual_data_from_xml(xml_file)
+            # print(actual_item)
             if actual_item != None :
                 actual_data.append(actual_item)
             else :
-                print('Error : '+xml_path)
+                print('Error : '+xml_file)
                 continue
-            img = skimage.io.imread(img_path)
-            print("img path is")
-            print(img_path)
+            img = skimage.io.imread(img_file)
+            # print("img path is")
+            # print(img_file)
             img = skimage.transform.resize(img, (300, 300))
             # print("img value is")
             # print(img)

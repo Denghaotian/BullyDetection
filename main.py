@@ -1,11 +1,12 @@
 # Qingbo/Haotian Mar 8,2019
 
 # import loaddata
+from my_model.ObjectDetectModel import Model
 from my_model import laimodel, vgg16model, vgg17model
 import sys  
 import os
 import tensorflow as tf
-from tensorflow.python.platform import flags  
+# from tensorflow.python.platform import flags  
 # from tensorflow.python.platform import gfile
 
 import time
@@ -15,25 +16,24 @@ import random
 import numpy as np
 import gc
 import xml.etree.ElementTree as etxml
-import skimage.io
-import skimage.transform
 # import ssd300
 import time
 
 #Define some global and local variables
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string("img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/JPEGImages/", "path for train img")
-flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge/Annotations/", "path for train xml file")
+flags.DEFINE_string('action', 'training', 'training/testing/predict')
+flags.DEFINE_string("img_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/JPEGImages/", "path for train img")
+flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_train/Annotations/", "path for train xml file")
 def set_parameter():
     #set some superparameters which can reset befor run
     flags.DEFINE_float('learning_rate', 0.0001, 'Initial learning rate.')
     # ?% of the data will be used for validation
     flags.DEFINE_float('validation_size', 0.2, 'validation size.')
-    flags.DEFINE_integer('img_size', 128, 'image width=image height.')
+    flags.DEFINE_integer('image_size', 128, 'image width=image height.')
     flags.DEFINE_integer('iteration_steps', 20000, 'Number of epochs to run trainer.')
     flags.DEFINE_string("train_path", "data_bully/training_data", "path of training data")
-    flags.DEFINE_integer('batch_size', 64, 'Number of batch size.')
+    flags.DEFINE_integer('batch_size',1 , 'Number of batch size.')
     flags.DEFINE_string("output_labels", "trained_model/output_labels.txt", "store the labels")
     flags.DEFINE_string("saved_dir", "trained_model", "save trained model")
     flags.DEFINE_string("saved_file", "trained_model/bully_action", "save trained model")
@@ -45,7 +45,7 @@ def set_parameter():
     flags.DEFINE_integer('filter_depth2', 32, 'filter depth for conv2.')
     flags.DEFINE_integer('filter_depth3', 64, 'filter depth for conv3.')
     flags.DEFINE_integer('pooling_num', 3, 'Number of pooling')
-    flags.DEFINE_integer('flatten_num', pow(FLAGS.img_size//
+    flags.DEFINE_integer('flatten_num', pow(FLAGS.image_size//
         pow(2,FLAGS.pooling_num),2)*FLAGS.filter_depth3, 
         'Number of features after flattern')
     print("flatten_num is", FLAGS.flatten_num)
@@ -91,12 +91,12 @@ def main(_):
     print("img_path is :", FLAGS.img_path)
     print("validation percent is :", FLAGS.validation_size)
 
-	#establish the session variable
+    #establish the session variable
     sess = tf.Session()
-	# establish a model object
-	model = Model(sess, PARA)
-	#start training or testing
-	getattr(model,flags.FLAGS.action)()
+    # establish a model object
+    model = Model(sess, FLAGS)
+    #start training or testing
+    getattr(model,FLAGS.action)()
 
 
     #*prepare the training dataset & load data
@@ -128,7 +128,7 @@ def main(_):
         file_handler.close()
     print(label_lst)
  
-    input_data = loaddata.read_dataset(FLAGS.train_path, FLAGS.img_size, 
+    input_data = loaddata.read_dataset(FLAGS.train_path, FLAGS.image_size, 
                                       classes, FLAGS.validation_size)
     print("******The traning data have been loaded**********")
     # print(input_data.train.cls)
@@ -143,7 +143,7 @@ def main(_):
         #1) Define some data & labbel placeholder.
         ## data
         data_placeholder = tf.placeholder(tf.float32, 
-            shape=[None, FLAGS.img_size,FLAGS.img_size,FLAGS.img_depth], 
+            shape=[None, FLAGS.image_size,FLAGS.image_size,FLAGS.img_depth], 
             name='data_placeholder')
         ## labels
         label_placeholder = tf.placeholder(tf.float32, 
@@ -171,7 +171,7 @@ def main(_):
             vgg_filter_depth4=FLAGS.vgg_filter_depth4, 
             vgg_num_hidden1=FLAGS.vgg_num_hidden1,
             vgg_num_hidden2=FLAGS.vgg_num_hidden2,
-            img_size=FLAGS.img_size, 
+            image_size=FLAGS.image_size, 
             img_depth=FLAGS.img_depth , 
             class_number=FLAGS.class_number)
 
@@ -195,7 +195,7 @@ def main(_):
             vgg_filter_depth13=FLAGS.vgg17_filter_depth13, 
             vgg_num_hidden1=FLAGS.vgg17_num_hidden1,
             vgg_num_hidden2=FLAGS.vgg17_num_hidden2,
-            img_size=FLAGS.img_size, 
+            image_size=FLAGS.image_size, 
             img_depth=FLAGS.img_depth , 
             class_number=FLAGS.class_number)
 
