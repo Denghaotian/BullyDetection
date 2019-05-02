@@ -18,12 +18,11 @@ debug.txt
 #predict.py
 train.py
 #trained_model/*
+# trained_model/*.data*
 trained_model/bully_action.data*
-trained_model/*.data*
 trained_model_cat_1/*
 trained_model_cat20199315/*
 session_params/*
-trained_model/*
 #===========python related==========
 # Byte-compiled / optimized / DLL files
 __pycache__/
