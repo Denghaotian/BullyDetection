@@ -24,6 +24,9 @@ We rewrited and modified Single Shot MultiBox Detector (SSD), so the network is 
 ## Training Strategy
 We use the dataset provided in the CPSC-8810 as the basis, but for the model training, the dataset in the classroom can not meet the requirements, and further processing, such as labeling the object, we use the "labelImg" tool to mark the file. we can get "xml" files about images which contains information of labels and regions. And then annotations' formula same as the PASCAL VOC data set. Our data mainly contain two objects, one is bully, the other is victim.
 
+## Dataset
+https://drive.google.com/file/d/1A53EMRaQtCmFupcIeqJGq4FHZ7pOV3bi/view?usp=sharing
+
 ## Usages
 Default location of images in dataset : dataset/JPEGImages/
 Default location of testing data: dataset/Annotationsa
