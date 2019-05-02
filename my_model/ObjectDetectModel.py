@@ -92,7 +92,7 @@ class Model(object):
             if os.path.exists('./trained_model/bullymodel.ckpt.index') :
                 saver.restore(sess, './trained_model/bullymodel.ckpt')
                 #load data
-                image, actual,file_list= get_data(1,self.parameters.img_path,self.parameters.xml_path)
+                image, actual,file_list= get_data(self.parameters.test_num,self.parameters.img_path,self.parameters.xml_path)
                 #run
                 pred_class, pred_class_val, pred_location =  my_net.prediction_run(image,None)
                 print('images for prediction:' + str(file_list))

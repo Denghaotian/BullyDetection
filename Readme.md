@@ -1,5 +1,5 @@
-# Bully picture classification 
-CPSC8810 Deep Learning Term Project
+# Bully picture object detection
+CPSC8810 Deep Learning Term Project Stage2
 
 ## Authors
 Qingbo Lai   
@@ -30,32 +30,25 @@ stabbing, gossiping, strangle and isolation. The rest of images are
 nonbullying category. 
 
 ## Usages
-Default location of training data : data_bully/training_data
-
-Default location of testing data: data_bully/testing_data
+Default location of images in dataset : dataset/JPEGImages/
+Default location of testing data: dataset/Annotationsa
 ### Train
-python bully_train.py --train_path path-to-training-dataset
-### predict a single image
-python predict.py --img_file path-to-img/xxx.jpg
-### test the accuracy for testing dataset 
-python test.py --test_path path-to-testing-dataset
+python main.py
+### test(predict) a single image (default value of test_num=1)
+python main.py --action prediction
+### test(predict) a group of  images (assign a value to test_num)
+python main.py --action prediction --test_num 3
 
+### modify the dataset path
+python main.py --img_path your_img_path 
+Or
+python main.py --action prediction --img_path your_img_path 
 
+### modify training steps
+python main.py --iteration_steps 10000
 
-## Testing
-You can test model use two methods.
+### modify learning rate
+python main.py --learning_rate 0.0001
 
-Testing one image 
-
-Command line:
-
-Testing 10 groups of classified images by the tagged file directory
-like laughing, pullinghair, quarrel, slapping, punching, stabbing, 
-gossiping, strangle, isolation and nonbullying. The output will be
-the accuracy of testing files.
-
-Command line:
-
-Best Testing accuracy result is 
 
 ## Reference

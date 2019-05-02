@@ -21,6 +21,7 @@ flags.DEFINE_string("xml_path", "/Users/tarus/OnlyInMac/bully_data/bully_merge_t
 flags.DEFINE_integer('iteration_steps', 20000, 'Number of steps to run trainer.')
 flags.DEFINE_integer('batch_size',8 , 'Number of batch size.')
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
+flags.DEFINE_float('test_num', 1, 'the number of images used for test.')
 def set_parameter():
     #set some superparameters which can reset befor run
     # ?% of the data will be used for validation
