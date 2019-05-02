@@ -19,15 +19,10 @@ Palmetto www.palmetto.clemson.edu
 Python3.6; TensorFlow framework 1.12
 
 ## Network Structure
-We have two different networks structure. one is simple three layers CNN 
-model with two fully connected layers which written by ourselves, the 
-another model is based VGG16 with some changes by ourselves.
+We rewrited and modified Single Shot MultiBox Detector (SSD), so the network is SSD's net structure.
 
 ## Training Strategy
-We used ten categories images to train model. Nine categories of bully 
-images which are laughing, pullinghair, quarrel, slapping, punching, 
-stabbing, gossiping, strangle and isolation. The rest of images are 
-nonbullying category. 
+We use the dataset provided in the CPSC-8810 as the basis, but for the model training, the dataset in the classroom can not meet the requirements, and further processing, such as labeling the object, we use the "labelImg" tool to mark the file. we can get "xml" files about images which contains information of labels and regions. And then annotations' formula same as the PASCAL VOC data set. Our data mainly contain two objects, one is bully, the other is victim.
 
 ## Usages
 Default location of images in dataset : dataset/JPEGImages/
